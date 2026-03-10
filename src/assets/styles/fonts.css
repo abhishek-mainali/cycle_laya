@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garant:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600&family=Inter:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+
+/* Global CycleLaya styles */
+html {
+  scroll-behavior: smooth;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  box-sizing: border-box;
+}
+
+::selection {
+  background: rgba(201, 169, 110, 0.25);
+  color: #F2EEE8;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0A0906;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(201, 169, 110, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(201, 169, 110, 0.5);
+}
+
+/* Form input placeholder */
+input::placeholder,
+textarea::placeholder {
+  color: rgba(242, 238, 232, 0.2) !important;
+}
+
+select option {
+  background: #1a1814;
+  color: #F2EEE8;
+}
