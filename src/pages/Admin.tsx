@@ -8,6 +8,7 @@ import {
     LayoutDashboard, Briefcase, Quote as QuoteIcon, X, Folders,
     Globe, Brush, Share2, Layout
 } from "lucide-react";
+import { motion, Reorder } from "framer-motion";
 import { uploadImage } from "@/utils/uploadImage";
 
 interface Application {
@@ -127,9 +128,41 @@ export default function Admin() {
         }
     };
 
-    const [passwordData, setPasswordData] = useState({ newPassword: '', confirmPassword: '' });
+    const DEFAULT_TABS = [
+        { id: "submissions", label: "Submissions", icon: <Users size={18} /> },
+        { id: "content", label: "Site Content", icon: <Layout size={18} /> },
+        { id: "settings", label: "Settings", icon: <Settings size={18} /> },
+    ];
+
+    const [tabs, setTabs] = useState(() => {
+        const saved = localStorage.getItem('admin_sidebar_order');
+        if (saved) {
+            try {
+                const order = JSON.parse(saved);
+                const reordered = order.map((id: string) => DEFAULT_TABS.find(t => t.id === id)).filter(Boolean);
+                // Ensure all default tabs are present even if storage is outdated
+                const missing = DEFAULT_TABS.filter(t => !order.includes(t.id));
+                return [...reordered, ...missing];
+            } catch (e) {
+                return DEFAULT_TABS;
+            }
+        }
+        return DEFAULT_TABS;
+    });
+
+    useEffect(() => {
+        localStorage.setItem('admin_sidebar_order', JSON.stringify(tabs.map(t => t.id)));
+    }, [tabs]);
+
+    const [passwordData, setPasswordData] = useState({ oldPassword: '', newPassword: '', confirmPassword: '' });
     const handleUpdatePassword = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        if (!userEmail) {
+            alert("User email not found!");
+            return;
+        }
+
         if (passwordData.newPassword !== passwordData.confirmPassword) {
             alert("Passwords do not match!");
             return;
@@ -141,12 +174,23 @@ export default function Admin() {
 
         setSaving(true);
         try {
+            // Re-authenticate user to verify old password
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email: userEmail,
+                password: passwordData.oldPassword
+            });
+
+            if (signInError) {
+                throw new Error("Incorrect current password.");
+            }
+
             const { error } = await supabase.auth.updateUser({ password: passwordData.newPassword });
             if (error) throw error;
+            
             alert("Password updated successfully!");
-            setPasswordData({ newPassword: '', confirmPassword: '' });
+            setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
         } catch (err: any) {
-            alert("Error updating password: " + err.message);
+            alert("Error: " + err.message);
         } finally {
             setSaving(false);
         }
@@ -301,11 +345,35 @@ export default function Admin() {
                         </div>
                     )}
 
-                    <nav style={{ display: "flex", flexDirection: isMobile ? "row" : "column", gap: "8px", flex: isMobile ? "none" : 1 }}>
-                        <NavButton active={activeTab === "submissions"} onClick={() => setActiveTab("submissions")} icon={<Users size={18} />} label={isMobile ? "" : "Submissions"} />
-                        <NavButton active={activeTab === "content"} onClick={() => setActiveTab("content")} icon={<Layout size={18} />} label={isMobile ? "" : "Site Content"} />
-                        <NavButton active={activeTab === "settings"} onClick={() => setActiveTab("settings")} icon={<Settings size={18} />} label={isMobile ? "" : "Settings"} />
-                    </nav>
+                    <Reorder.Group 
+                        axis={isMobile ? "x" : "y"} 
+                        values={tabs} 
+                        onReorder={setTabs} 
+                        style={{ 
+                            display: "flex", 
+                            flexDirection: isMobile ? "row" : "column", 
+                            gap: "8px", 
+                            flex: isMobile ? "none" : 1,
+                            listStyle: "none",
+                            padding: 0,
+                            margin: 0
+                        }}
+                    >
+                        {tabs.map((tab) => (
+                            <Reorder.Item 
+                                key={tab.id} 
+                                value={tab}
+                                style={{ listStyle: "none" }}
+                            >
+                                <NavButton 
+                                    active={activeTab === tab.id} 
+                                    onClick={() => setActiveTab(tab.id as any)} 
+                                    icon={tab.icon} 
+                                    label={isMobile ? "" : tab.label} 
+                                />
+                            </Reorder.Item>
+                        ))}
+                    </Reorder.Group>
 
                     <button onClick={handleLogout} style={{ 
                         display: "flex", 
@@ -374,7 +442,7 @@ export default function Admin() {
 
 function NavButton({ active, onClick, icon, label }: any) {
     return (
-        <button onClick={onClick} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 16px", borderRadius: "4px", border: "none", cursor: "pointer", transition: "all 0.2s", textAlign: "left", background: active ? "rgba(201,169,110,0.1)" : "transparent", color: active ? "#C9A96E" : "rgba(242,238,232,0.6)" }}>
+        <button onClick={onClick} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 16px", borderRadius: "4px", border: "none", cursor: "pointer", transition: "all 0.2s", textAlign: "left", background: active ? "rgba(201,169,110,0.1)" : "transparent", color: active ? "#C9A96E" : "rgba(242,238,232,0.6)", userSelect: "none" }}>
             {icon} {label && <span>{label}</span>}
         </button>
     );
@@ -509,6 +577,21 @@ function SettingsView({ siteContent, onContentChange, onSave, onImageUpload, sav
 
                 <hr style={{ border: "none", borderTop: "1px solid rgba(255,255,255,0.05)" }} />
 
+                {/* Legal Section */}
+                <section>
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px", color: "#C9A96E" }}>
+                        <Briefcase size={18} />
+                        <h3 style={{ textTransform: "uppercase", fontSize: "12px", letterSpacing: "0.2em", fontWeight: 700 }}>Legal Pages</h3>
+                    </div>
+                    <div style={{ display: "grid", gap: "24px" }}>
+                        <p style={{ fontSize: "12px", opacity: 0.5, marginBottom: "8px" }}>These contents will appear on your Terms & Conditions and Privacy Policy pages.</p>
+                        {renderSettingField("Terms & Conditions", "terms_conditions", "textarea")}
+                        {renderSettingField("Privacy Policy", "privacy_policy", "textarea")}
+                    </div>
+                </section>
+
+                <hr style={{ border: "none", borderTop: "1px solid rgba(255,255,255,0.05)" }} />
+
                 {/* Security Section */}
                 <section>
                     <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px", color: "#E84040" }}>
@@ -517,7 +600,17 @@ function SettingsView({ siteContent, onContentChange, onSave, onImageUpload, sav
                     </div>
                     <form onSubmit={onUpdatePassword} style={{ background: "rgba(232,64,64,0.02)", border: "1px solid rgba(232,64,64,0.1)", borderRadius: "8px", padding: "24px", display: "grid", gap: "20px" }}>
                         <p style={{ fontSize: "13px", fontWeight: 500, color: "#F2EEE8" }}>Change Admin Password</p>
-                        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "20px" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr", gap: "20px" }}>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                                <label style={{ fontSize: "11px", textTransform: "uppercase", opacity: 0.4 }}>Current Password</label>
+                                <input 
+                                    type="password" 
+                                    value={passwordData.oldPassword}
+                                    onChange={(e) => setPasswordData({ ...passwordData, oldPassword: e.target.value })}
+                                    style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "4px", padding: "10px", color: "#F2EEE8" }}
+                                    required
+                                />
+                            </div>
                             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                                 <label style={{ fontSize: "11px", textTransform: "uppercase", opacity: 0.4 }}>New Password</label>
                                 <input 

@@ -229,27 +229,46 @@ export function Footer() {
             © 2026 CycleLaya. All rights reserved. Crafted in the Heart of Nepal.
           </p>
           <div style={{ display: "flex", gap: "24px" }}>
-            {["Privacy Policy", "Terms of Service"].map((item) => (
-              <button
-                key={item}
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  color: "rgba(242,238,232,0.2)",
-                  fontSize: "12px",
-                  fontFamily: "'Inter', sans-serif",
-                  fontWeight: 300,
-                  letterSpacing: "0.04em",
-                  padding: 0,
-                  transition: "color 0.2s ease",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(242,238,232,0.5)")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(242,238,232,0.2)")}
-              >
-                {item}
-              </button>
-            ))}
+            <a
+              href="/privacy"
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: "rgba(242,238,232,0.2)",
+                fontSize: "12px",
+                fontFamily: "'Inter', sans-serif",
+                fontWeight: 300,
+                letterSpacing: "0.04em",
+                padding: 0,
+                transition: "color 0.2s ease",
+                textDecoration: "none"
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(242,238,232,0.5)")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(242,238,232,0.2)")}
+            >
+              Privacy Policy
+            </a>
+            <a
+              href="/terms"
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: "rgba(242,238,232,0.2)",
+                fontSize: "12px",
+                fontFamily: "'Inter', sans-serif",
+                fontWeight: 300,
+                letterSpacing: "0.04em",
+                padding: 0,
+                transition: "color 0.2s ease",
+                textDecoration: "none"
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(242,238,232,0.5)")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(242,238,232,0.2)")}
+            >
+              Terms of Service
+            </a>
           </div>
         </div>
       </div>
