@@ -1,8 +1,25 @@
 import { useRef } from "react";
 import { motion, useInView } from "motion/react";
 import { Check, ArrowRight } from "lucide-react";
+import { useListContent } from "@/hooks/useContent";
 
-const programs = [
+interface Program {
+  id?: string;
+  tier: string;
+  name: string;
+  subtitle: string;
+  duration: string;
+  riders: string;
+  tag: string;
+  price: string;
+  priceNote: string;
+  description: string;
+  features: string[];
+  highlight: boolean;
+  accentColor?: string;
+}
+
+const DEFAULT_PROGRAMS: Program[] = [
   {
     tier: "01",
     name: "Trail Fundamentals",
@@ -89,6 +106,9 @@ function FadeIn({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
 }
 
 export function Programs() {
+  const { items: dbPrograms } = useListContent<Program>("programs");
+  const programs = dbPrograms.length > 0 ? dbPrograms : DEFAULT_PROGRAMS;
+
   const scrollToContact = () => {
     document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" });
   };
@@ -173,7 +193,7 @@ export function Programs() {
           }}
         >
           {programs.map((program, i) => (
-            <FadeIn key={program.name} delay={0.1 * i}>
+            <FadeIn key={program.id || `program-${i}`} delay={0.1 * i}>
               <div
                 style={{
                   position: "relative",
@@ -361,9 +381,9 @@ export function Programs() {
 
                 {/* Features */}
                 <ul style={{ listStyle: "none", padding: 0, margin: "0 0 40px", display: "flex", flexDirection: "column", gap: "12px" }}>
-                  {program.features.map((feature) => (
+                  {program.features.map((feature, fIndex) => (
                     <li
-                      key={feature}
+                      key={`${program.id || i}-feature-${fIndex}`}
                       style={{
                         display: "flex",
                         alignItems: "center",

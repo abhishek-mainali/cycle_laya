@@ -1,21 +1,39 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { ChevronDown } from "lucide-react";
-import landingImg from "@/assets/images/landing.jpg";
+import { useContent } from "@/hooks/useContent";
 
-const HERO_IMAGE = landingImg;
+const HERO_IMAGE = "https://images.unsplash.com/photo-1729455192378-a3347584fb71?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb3VudGFpbiUyMGJpa2UlMjB0cmFpbCUyMGFlcmlhbCUyMG92ZXJoZWFkJTIwdmlld3xlbnwxfHx8fDE3NzMxMTI2OTR8MA&ixlib=rb-4.1.0&q=80&w=1920";
 
 const PRAYER_FLAG_COLORS = ["#3B7DD8", "#E8E4DC", "#E84040", "#4CAF73", "#F5C842"];
 
 export function Hero() {
   const [scrollY, setScrollY] = useState(0);
   const heroRef = useRef<HTMLDivElement>(null);
+  const { content, loading } = useContent("hero");
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  // Fallback values
+  const eyebrow = content['eyebrow']?.text || "Nepal · Himalaya · Trail";
+  const headline = content['headline']?.text || "Ride with Rhythm.";
+  const headlineItalic = content['headline_italic']?.text || "Flow with the Mountain.";
+  const tagline = content['tagline']?.text || "Elite mountain bike coaching in the heart of the Himalayas, guided by Nirav Shrestha & the spirit of Laya.";
+  const heroImage = content['image']?.image || HERO_IMAGE;
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Preload image to ensure smooth transition
+  useEffect(() => {
+    if (heroImage) {
+      const img = new Image();
+      img.src = heroImage;
+      img.onload = () => setImageLoaded(true);
+    }
+  }, [heroImage]);
 
   const scrollToPhilosophy = () => {
     document.querySelector("#philosophy")?.scrollIntoView({ behavior: "smooth" });
@@ -41,10 +59,14 @@ export function Hero() {
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
+        background: "#0A0906", // Solid background while loading
       }}
     >
-      {/* Background image with parallax */}
-      <div
+      {/* Background image with parallax and smooth fade-in */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: (imageLoaded && !loading) ? 1 : 0 }}
+        transition={{ duration: 1.5, ease: "easeOut" }}
         style={{
           position: "absolute",
           inset: 0,
@@ -53,7 +75,7 @@ export function Hero() {
         }}
       >
         <img
-          src={HERO_IMAGE}
+          src={heroImage}
           alt="Mountain biker on Nepal trails"
           style={{
             width: "100%",
@@ -62,7 +84,7 @@ export function Hero() {
             objectPosition: "center 30%",
           }}
         />
-      </div>
+      </motion.div>
 
       {/* Gradient overlays */}
       <div
@@ -70,7 +92,7 @@ export function Hero() {
           position: "absolute",
           inset: 0,
           background:
-            "linear-gradient(to bottom, rgba(10,9,6,0.55) 0%, rgba(10,9,6,0.2) 40%, rgba(10,9,6,0.65) 80%, rgba(10,9,6,0.95) 100%)",
+            `linear-gradient(to bottom, rgba(10,9,6,${(content['overlay_opacity']?.text || 55) / 100}) 0%, rgba(10,9,6,0.2) 40%, rgba(10,9,6,0.65) 80%, rgba(10,9,6,0.95) 100%)`,
         }}
       />
 
@@ -116,7 +138,7 @@ export function Hero() {
             marginBottom: "28px",
           }}
         >
-          Nepal &nbsp;·&nbsp; Himalaya &nbsp;·&nbsp; Trail
+          {eyebrow}
         </motion.p>
 
         {/* Main headline */}
@@ -134,7 +156,7 @@ export function Hero() {
             marginBottom: "0",
           }}
         >
-          Ride with Rhythm.
+          {headline}
         </motion.h1>
         <motion.h1
           initial={{ opacity: 0, y: 40 }}
@@ -151,7 +173,7 @@ export function Hero() {
             marginBottom: "32px",
           }}
         >
-          Flow with the Mountain.
+          {headlineItalic}
         </motion.h1>
 
         {/* Tagline */}
@@ -172,8 +194,7 @@ export function Hero() {
             marginRight: "auto",
           }}
         >
-          Elite mountain bike coaching in the heart of the Himalayas,
-          <br className="hidden md:block" /> guided by Nirav Shrestha &amp; the spirit of Laya.
+          {tagline}
         </motion.p>
 
         {/* CTAs */}

@@ -1,4 +1,6 @@
 import { Instagram, Youtube, Facebook, Mail } from "lucide-react";
+import { useContent } from "@/hooks/useContent";
+import logoImg from "@/assets/images/logo/logo.png";
 
 const PRAYER_FLAG_COLORS = ["#3B7DD8", "#E8E4DC", "#E84040", "#4CAF73", "#F5C842"];
 
@@ -24,6 +26,8 @@ const footerLinks = {
 };
 
 export function Footer() {
+  const { content: settings } = useContent("settings");
+  
   const scrollTo = (href: string) => {
     if (href === "#") return;
     const el = document.querySelector(href);
@@ -65,18 +69,14 @@ export function Footer() {
           <div style={{ gridColumn: "span 1" }}>
             {/* Logo */}
             <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
-              <svg width="28" height="20" viewBox="0 0 28 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M2 18 L9 6 L13 12 L16 8 L22 2 L26 18 Z"
-                  stroke="#C9A96E"
-                  strokeWidth="1.5"
-                  strokeLinejoin="round"
-                  fill="none"
-                />
-              </svg>
+              <img 
+                src={settings["site_logo"]?.image_url || logoImg} 
+                alt="CycleLaya Logo" 
+                style={{ width: "28px", height: "20px", objectFit: "contain" }} 
+              />
               <span
                 style={{
-                  fontFamily: "'Cormorant Garant', serif",
+                  fontFamily: "'Cormorant Garamond', serif",
                   fontSize: "20px",
                   fontWeight: 600,
                   color: "#F2EEE8",
@@ -120,14 +120,17 @@ export function Footer() {
             {/* Social icons */}
             <div style={{ display: "flex", gap: "12px" }}>
               {[
-                { icon: <Instagram size={16} />, label: "Instagram" },
-                { icon: <Youtube size={16} />, label: "YouTube" },
-                { icon: <Facebook size={16} />, label: "Facebook" },
-                { icon: <Mail size={16} />, label: "Email" },
+                { icon: <Instagram size={16} />, label: "Instagram", url: settings["instagram"]?.content },
+                { icon: <Youtube size={16} />, label: "YouTube", url: settings["youtube"]?.content },
+                { icon: <Facebook size={16} />, label: "Facebook", url: settings["facebook"]?.content },
+                { icon: <Mail size={16} />, label: "Email", url: settings["contact_email"]?.content ? `mailto:${settings["contact_email"].content}` : null },
               ].map((social) => (
-                <button
+                <a
                   key={social.label}
                   title={social.label}
+                  href={social.url || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   style={{
                     width: "36px",
                     height: "36px",
@@ -140,6 +143,7 @@ export function Footer() {
                     cursor: "pointer",
                     color: "rgba(242,238,232,0.35)",
                     transition: "all 0.25s ease",
+                    textDecoration: "none"
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.borderColor = "rgba(201,169,110,0.4)";
@@ -151,7 +155,7 @@ export function Footer() {
                   }}
                 >
                   {social.icon}
-                </button>
+                </a>
               ))}
             </div>
           </div>

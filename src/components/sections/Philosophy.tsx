@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { motion, useInView } from "motion/react";
+import { useContent } from "@/hooks/useContent";
 
 const HIMALAYA_IMAGE = "https://images.unsplash.com/photo-1763480005793-501a0cbe1ac9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoaW1hbGF5YW4lMjB2YWxsZXklMjBmb2clMjBtaXN0JTIwbGFuZHNjYXBlfGVufDF8fHx8MTc3MzExMjY5NHww&ixlib=rb-4.1.0&q=80&w=1920";
 
@@ -49,6 +50,10 @@ function FadeIn({
 }
 
 export function Philosophy() {
+  const { content } = useContent("philosophy");
+  const mainQuote = content['quote']?.text || '"In Nepali, Laya means rhythm — the sacred cadence between rider and mountain, between effort and surrender, between who you are and who you are becoming."';
+  const himalayaQuote = content['himalaya_quote']?.text || '"The mountains have been here forever. Learn to move with them."';
+  const breakImage = content['image']?.image || HIMALAYA_IMAGE;
   return (
     <>
       {/* Philosophy Section */}
@@ -97,7 +102,7 @@ export function Philosophy() {
               {/* Ghost background text */}
               <span
                 style={{
-                  fontFamily: "'Cormorant Garant', serif",
+                  fontFamily: "'Cormorant Garamond', serif",
                   fontSize: "clamp(120px, 20vw, 260px)",
                   fontWeight: 700,
                   color: "rgba(242, 238, 232, 0.04)",
@@ -119,7 +124,7 @@ export function Philosophy() {
               {/* Foreground display text */}
               <span
                 style={{
-                  fontFamily: "'Cormorant Garant', serif",
+                  fontFamily: "'Cormorant Garamond', serif",
                   fontSize: "clamp(48px, 7vw, 88px)",
                   fontWeight: 600,
                   color: "#F2EEE8",
@@ -165,8 +170,7 @@ export function Philosophy() {
                 letterSpacing: "0.01em",
               }}
             >
-              "In Nepali, <em>Laya</em> means rhythm — the sacred cadence between rider and mountain, between effort
-              and surrender, between who you are and who you are becoming."
+              {mainQuote}
             </p>
           </FadeIn>
 
@@ -215,7 +219,7 @@ export function Philosophy() {
                 >
                   <p
                     style={{
-                      fontFamily: "'Cormorant Garant', serif",
+                      fontFamily: "'Cormorant Garamond', serif",
                       fontSize: "40px",
                       fontWeight: 300,
                       color: "rgba(201,169,110,0.4)",
@@ -227,7 +231,7 @@ export function Philosophy() {
                   </p>
                   <h3
                     style={{
-                      fontFamily: "'Cormorant Garant', serif",
+                      fontFamily: "'Cormorant Garamond', serif",
                       fontSize: "clamp(22px, 2.5vw, 28px)",
                       fontWeight: 600,
                       color: "#F2EEE8",
@@ -268,7 +272,7 @@ export function Philosophy() {
         }}
       >
         <img
-          src={HIMALAYA_IMAGE}
+          src={breakImage}
           alt="Himalayan valley in mist"
           style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }}
         />
@@ -302,9 +306,7 @@ export function Philosophy() {
                 letterSpacing: "0.01em",
               }}
             >
-              "The mountains have been here forever.
-              <br />
-              Learn to move with them."
+              {himalayaQuote}
             </p>
             <div
               style={{

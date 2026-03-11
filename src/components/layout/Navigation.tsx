@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Phone, Heart, Mountain } from "lucide-react";
+import { useContent } from "@/hooks/useContent";
 import logoImg from "@/assets/images/logo/logo.png";
 
 const navLinks = [
@@ -13,12 +14,27 @@ const navLinks = [
 export function Navigation() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const { content: settings } = useContent("settings");
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 60);
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    
+    handleScroll();
+    handleResize();
+    
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
+
+  const bannerActive = settings["banner_active"]?.content === "true";
+  const bannerText = settings["banner_text"]?.content || "Ride With Rhythm. Flow with the Mountain.";
+  const siteLogo = settings["site_logo"]?.image_url;
 
   const scrollTo = (href: string) => {
     setMobileOpen(false);
@@ -28,20 +44,41 @@ export function Navigation() {
 
   return (
     <>
+      {/* Top Banner */}
+      <div 
+        style={{ 
+          height: bannerActive ? "32px" : "0px",
+          overflow: "hidden",
+          transition: "height 0.3s ease",
+          background: "linear-gradient(to right, #C9A96E, #A68B56)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1001
+        }}
+      >
+        <p style={{ color: "#0A0906", fontSize: "11px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em" }}>{bannerText}</p>
+      </div>
+
       <motion.nav
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
         style={{
           position: "fixed",
-          top: 0,
+          top: bannerActive ? "32px" : "0",
           left: 0,
           right: 0,
-          zIndex: 100,
-          transition: "background 0.4s ease, backdrop-filter 0.4s ease",
-          background: scrolled ? "rgba(10, 9, 6, 0.88)" : "transparent",
-          backdropFilter: scrolled ? "blur(20px)" : "none",
-          borderBottom: scrolled ? "1px solid rgba(255,255,255,0.06)" : "none",
+          zIndex: 1000,
+          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+          background: scrolled ? "rgba(10, 9, 6, 0.95)" : "transparent",
+          backdropFilter: scrolled ? "blur(12px)" : "none",
+          padding: scrolled ? "16px 0" : "28px 0",
+          borderBottom: scrolled ? "1px solid rgba(255, 255, 255, 0.05)" : "1px solid transparent",
         }}
       >
         <div
@@ -60,12 +97,12 @@ export function Navigation() {
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
             style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <MountainLogo />
+            <div style={{ display: "flex", alignItems: "center", gap: isMobile ? "8px" : "10px" }}>
+              <MountainLogo isMobile={isMobile} siteLogo={siteLogo} />
               <span
                 style={{
                   fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: "22px",
+                  fontSize: isMobile ? "18px" : "22px",
                   fontWeight: 600,
                   color: "#F2EEE8",
                   letterSpacing: "0.06em",
@@ -77,7 +114,14 @@ export function Navigation() {
           </button>
 
           {/* Desktop Links */}
-          <div style={{ display: "flex", alignItems: "center", gap: "40px" }} className="hidden md:flex">
+          <div 
+            style={{ 
+              display: isMobile ? "none" : "flex", 
+              alignItems: "center", 
+              gap: "40px" 
+            }} 
+            className="hidden md:flex"
+          >
             {navLinks.map((link) => (
               <button
                 key={link.href}
@@ -157,7 +201,7 @@ export function Navigation() {
             transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
             style={{
               position: "fixed",
-              top: "72px",
+              top: bannerActive ? "104px" : "72px",
               left: 0,
               right: 0,
               zIndex: 99,
@@ -236,12 +280,12 @@ export function Navigation() {
   );
 }
 
-function MountainLogo() {
+function MountainLogo({ isMobile, siteLogo }: { isMobile?: boolean, siteLogo?: string }) {
   return (
     <img
-      src={logoImg}
+      src={siteLogo || logoImg}
       alt="CycleLaya Logo"
-      style={{ width: "32px", height: "32px", objectFit: "contain" }}
+      style={{ width: isMobile ? "24px" : "32px", height: isMobile ? "24px" : "32px", objectFit: "contain" }}
     />
   );
 }

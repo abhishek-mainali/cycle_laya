@@ -1,5 +1,6 @@
-import { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion, useInView } from "motion/react";
+import { useContent } from "@/hooks/useContent";
 
 const FOUNDER_IMAGE = "https://images.unsplash.com/photo-1754546994955-446c632b0351?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb3VudGFpbiUyMGJpa2luZyUyMGNvYWNoaW5nJTIwdHJhaW5pbmclMjBwcm9mZXNzaW9uYWx8ZW58MXx8fHwxNzczMTEyNjkwfDA&ixlib=rb-4.1.0&q=80&w=1080";
 const FOREST_IMAGE = "https://images.unsplash.com/photo-1760233470659-5151016f3453?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb3VudGFpbiUyMGJpa2UlMjByaWRlciUyMGZvcmVzdCUyMHRyYWlsJTIwZXBpY3xlbnwxfHx8fDE3NzMxMTI2ODh8MA&ixlib=rb-4.1.0&q=80&w=1080";
@@ -28,6 +29,29 @@ function FadeIn({ children, delay = 0, direction = "up" }: { children: React.Rea
 }
 
 export function Founder() {
+  const { content, loading } = useContent("founder");
+  const [imagesLoaded, setImagesLoaded] = useState({ profile: false, secondary: false });
+  
+  const headline = content['headline']?.text || "Born on the trails,";
+  const headlineItalic = content['headline_italic']?.text || "forged by the mountains.";
+  const story = content['story']?.text || "Nirav Shrestha grew up navigating the rugged singletrack of the Kathmandu Valley, where the ancient forests of Shivapuri and Nagarjun became his first classroom. From a young age, he understood that riding wasn't just a sport — it was a language spoken between body and earth.";
+  const quote = content['quote']?.text || '"Every rider I work with is searching for the same thing — that moment when the thinking stops and the riding begins. I\'m here to help them find it."';
+  const profileImage = content['image']?.image || FOUNDER_IMAGE;
+  const secondaryImage = content['secondary_image']?.image || FOREST_IMAGE;
+
+  // Preload images
+  useEffect(() => {
+    if (profileImage) {
+      const img = new Image();
+      img.src = profileImage;
+      img.onload = () => setImagesLoaded(prev => ({ ...prev, profile: true }));
+    }
+    if (secondaryImage) {
+      const img = new Image();
+      img.src = secondaryImage;
+      img.onload = () => setImagesLoaded(prev => ({ ...prev, secondary: true }));
+    }
+  }, [profileImage, secondaryImage]);
   return (
     <section
       id="founder"
@@ -91,8 +115,11 @@ export function Founder() {
                   aspectRatio: "4/5",
                 }}
               >
-                <img
-                  src={FOUNDER_IMAGE}
+                <motion.img
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: (imagesLoaded.profile && !loading) ? 1 : 0 }}
+                  transition={{ duration: 1, ease: "easeOut" }}
+                  src={profileImage}
                   alt="Nirav Shrestha coaching mountain biking"
                   style={{
                     width: "100%",
@@ -102,8 +129,8 @@ export function Founder() {
                     display: "block",
                     transition: "transform 0.7s ease",
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.03)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                  onMouseEnter={(e: any) => (e.currentTarget.style.transform = "scale(1.03)")}
+                  onMouseLeave={(e: any) => (e.currentTarget.style.transform = "scale(1)")}
                 />
                 {/* Image gradient overlay */}
                 <div
@@ -123,7 +150,7 @@ export function Founder() {
                 >
                   <p
                     style={{
-                      fontFamily: "'Cormorant Garant', serif",
+                      fontFamily: "'Cormorant Garamond', serif",
                       fontSize: "22px",
                       fontWeight: 600,
                       color: "#F2EEE8",
@@ -163,8 +190,11 @@ export function Founder() {
                 }}
                 className="hidden lg:block"
               >
-                <img
-                  src={FOREST_IMAGE}
+                <motion.img
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: (imagesLoaded.secondary && !loading) ? 1 : 0 }}
+                  transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
+                  src={secondaryImage}
                   alt="Mountain biking forest trail"
                   style={{
                     width: "100%",
@@ -204,7 +234,7 @@ export function Founder() {
             <div style={{ paddingLeft: "0" }} className="lg:pl-8">
               <h2
                 style={{
-                  fontFamily: "'Cormorant Garant', serif",
+                  fontFamily: "'Cormorant Garamond', serif",
                   fontSize: "clamp(36px, 4.5vw, 56px)",
                   fontWeight: 600,
                   color: "#F2EEE8",
@@ -213,10 +243,10 @@ export function Founder() {
                   marginBottom: "32px",
                 }}
               >
-                Born on the trails,
+                {headline}
                 <br />
                 <span style={{ fontStyle: "italic", fontWeight: 300 }}>
-                  forged by the mountains.
+                  {headlineItalic}
                 </span>
               </h2>
 
@@ -241,25 +271,7 @@ export function Founder() {
                   letterSpacing: "0.01em",
                 }}
               >
-                Nirav Shrestha grew up navigating the rugged singletrack of the Kathmandu Valley, where the ancient
-                forests of Shivapuri and Nagarjun became his first classroom. From a young age, he understood that
-                riding wasn't just a sport — it was a language spoken between body and earth.
-              </p>
-
-              <p
-                style={{
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: "15px",
-                  fontWeight: 300,
-                  color: "rgba(242,238,232,0.65)",
-                  lineHeight: 1.9,
-                  marginBottom: "48px",
-                  letterSpacing: "0.01em",
-                }}
-              >
-                After competing internationally and training under some of the world's elite coaches, Nirav returned
-                to Nepal with a mission: to share the extraordinary trails of the Himalayas with riders from every
-                corner of the globe, and to guide them into their own Laya.
+                {story}
               </p>
 
               {/* Quote */}
@@ -272,7 +284,7 @@ export function Founder() {
               >
                 <p
                   style={{
-                    fontFamily: "'Cormorant Garant', serif",
+                    fontFamily: "'Cormorant Garamond', serif",
                     fontSize: "20px",
                     fontStyle: "italic",
                     fontWeight: 400,
@@ -281,8 +293,7 @@ export function Founder() {
                     letterSpacing: "0.01em",
                   }}
                 >
-                  "Every rider I work with is searching for the same thing — that moment when the thinking stops and
-                  the riding begins. I'm here to help them find it."
+                  {quote}
                 </p>
                 <p
                   style={{
@@ -320,7 +331,7 @@ export function Founder() {
                   >
                     <p
                       style={{
-                        fontFamily: "'Cormorant Garant', serif",
+                        fontFamily: "'Cormorant Garamond', serif",
                         fontSize: "clamp(30px, 3.5vw, 40px)",
                         fontWeight: 600,
                         color: "#C9A96E",

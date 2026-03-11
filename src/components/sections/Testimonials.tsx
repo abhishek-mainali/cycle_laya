@@ -1,12 +1,23 @@
 import { useRef, useState } from "react";
 import { motion, useInView, AnimatePresence } from "motion/react";
 import { ChevronLeft, ChevronRight, Star } from "lucide-react";
+import { useListContent } from "@/hooks/useContent";
 
 const PRAYER_FLAGS_IMAGE = "https://images.unsplash.com/photo-1767182752583-bfa4bc1f0727?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxuZXBhbCUyMHByYXllciUyMGZsYWdzJTIwbW91bnRhaW4lMjBzcGlyaXR1YWx8ZW58MXx8fHwxNzczMTEyNjkxfDA&ixlib=rb-4.1.0&q=80&w=1920";
-
 const PRAYER_FLAG_COLORS = ["#3B7DD8", "#E8E4DC", "#E84040", "#4CAF73", "#F5C842"];
 
-const testimonials = [
+interface Testimonial {
+  id?: string;
+  name: string;
+  country: string;
+  role: string;
+  rating: number;
+  quote: string;
+  program: string;
+  initials: string;
+}
+
+const DEFAULT_TESTIMONIALS: Testimonial[] = [
   {
     name: "Markus Bauer",
     country: "Germany 🇩🇪",
@@ -75,6 +86,8 @@ function FadeIn({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
 }
 
 export function Testimonials() {
+  const { items: dbTestimonials } = useListContent<Testimonial>("testimonials");
+  const testimonials = dbTestimonials.length > 0 ? dbTestimonials : DEFAULT_TESTIMONIALS;
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(0);
 
@@ -190,7 +203,7 @@ export function Testimonials() {
                     position: "absolute",
                     top: "24px",
                     left: "32px",
-                    fontFamily: "'Cormorant Garant', serif",
+                    fontFamily: "'Cormorant Garamond', serif",
                     fontSize: "120px",
                     fontWeight: 700,
                     color: "rgba(201,169,110,0.1)",
@@ -224,7 +237,7 @@ export function Testimonials() {
                     {/* Quote */}
                     <p
                       style={{
-                        fontFamily: "'Cormorant Garant', serif",
+                        fontFamily: "'Cormorant Garamond', serif",
                         fontSize: "clamp(18px, 2.2vw, 24px)",
                         fontStyle: "italic",
                         fontWeight: 400,
@@ -252,7 +265,7 @@ export function Testimonials() {
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          fontFamily: "'Cormorant Garant', serif",
+                          fontFamily: "'Cormorant Garamond', serif",
                           fontSize: "16px",
                           fontWeight: 600,
                           color: "#C9A96E",
@@ -318,7 +331,7 @@ export function Testimonials() {
               >
                 {/* Dots */}
                 <div style={{ display: "flex", gap: "8px" }}>
-                  {testimonials.map((_, i) => (
+                  {testimonials.map((_: any, i: number) => (
                     <button
                       key={i}
                       onClick={() => {

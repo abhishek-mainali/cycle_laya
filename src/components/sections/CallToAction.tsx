@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { motion, useInView } from "motion/react";
 import { ArrowRight, Mail, MapPin, Instagram, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useContent } from "@/hooks/useContent";
 
 const PRAYER_FLAG_COLORS = ["#3B7DD8", "#E8E4DC", "#E84040", "#4CAF73", "#F5C842"];
 
@@ -21,6 +22,9 @@ function FadeIn({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
 }
 
 export function CallToAction() {
+  const { content } = useContent("cta");
+  const headline = content['headline']?.text || "Your Laya Awaits.";
+  const subtext = content['subtext']?.text || "Tell us about your riding. We'll craft an experience\nthat transforms the way you move.";
   const [formState, setFormState] = useState({
     name: "",
     email: "",
@@ -157,7 +161,7 @@ export function CallToAction() {
                 marginBottom: "16px",
               }}
             >
-              Your Laya Awaits.
+              {headline}
             </h2>
             <p
               style={{
@@ -173,8 +177,12 @@ export function CallToAction() {
                 margin: "0 auto",
               }}
             >
-              Tell us about your riding. We'll craft an experience
-              <br className="hidden md:block" /> that transforms the way you move.
+              {subtext.split('\n').map((line: string, i: number) => (
+                <span key={i}>
+                  {line}
+                  {i === 0 && <br className="hidden md:block" />}
+                </span>
+              ))}
             </p>
           </div>
         </FadeIn>
