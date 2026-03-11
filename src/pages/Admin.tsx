@@ -21,8 +21,9 @@ interface Application {
 }
 
 export default function Admin() {
+    const [userEmail, setUserEmail] = useState<string | null>(null);
     const [applications, setApplications] = useState<Application[]>([]);
-    const [activeTab, setActiveTab] = useState<"submissions" | "content">("submissions");
+    const [activeTab, setActiveTab] = useState<"submissions" | "content" | "settings">("submissions");
     const [activeSection, setActiveSection] = useState("hero");
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -49,6 +50,7 @@ export default function Admin() {
             if (!session) {
                 navigate("/login");
             } else {
+                setUserEmail(session.user.email || null);
                 fetchAllData();
             }
         };
@@ -120,6 +122,31 @@ export default function Admin() {
             setApplications(prev => prev.filter(app => app.id !== id));
         } catch (err: any) {
             alert("Error deleting submission: " + err.message);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const [passwordData, setPasswordData] = useState({ newPassword: '', confirmPassword: '' });
+    const handleUpdatePassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (passwordData.newPassword !== passwordData.confirmPassword) {
+            alert("Passwords do not match!");
+            return;
+        }
+        if (passwordData.newPassword.length < 6) {
+            alert("Password must be at least 6 characters!");
+            return;
+        }
+
+        setSaving(true);
+        try {
+            const { error } = await supabase.auth.updateUser({ password: passwordData.newPassword });
+            if (error) throw error;
+            alert("Password updated successfully!");
+            setPasswordData({ newPassword: '', confirmPassword: '' });
+        } catch (err: any) {
+            alert("Error updating password: " + err.message);
         } finally {
             setSaving(false);
         }
@@ -261,10 +288,18 @@ export default function Admin() {
                     zIndex: 100,
                     height: isMobile ? "auto" : "100vh" 
                 }}>
-                    <div style={{ marginBottom: isMobile ? "0" : "40px", padding: "0 10px" }}>
-                        <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: isMobile ? "20px" : "24px", fontWeight: 600, color: "#C9A96E" }}>CycleLaya</h2>
-                        {!isMobile && <p style={{ fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.1em", opacity: 0.4 }}>Admin Suite</p>}
-                    </div>
+                    {!isMobile && (
+                        <div style={{ padding: "0 10px 24px", marginBottom: "24px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+                                <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#4CAF73" }}></div>
+                                <span style={{ fontSize: "11px", color: "rgba(242,238,232,0.6)", fontWeight: 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userEmail}</span>
+                            </div>
+                            <div style={{ display: "inline-flex", alignItems: "center", gap: "4px", padding: "3px 6px", background: "rgba(201,169,110,0.1)", borderRadius: "3px" }}>
+                                <Star size={10} style={{ color: "#C9A96E" }} />
+                                <span style={{ fontSize: "9px", color: "#C9A96E", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>Master Admin</span>
+                            </div>
+                        </div>
+                    )}
 
                     <nav style={{ display: "flex", flexDirection: isMobile ? "row" : "column", gap: "8px", flex: isMobile ? "none" : 1 }}>
                         <NavButton active={activeTab === "submissions"} onClick={() => setActiveTab("submissions")} icon={<Users size={18} />} label={isMobile ? "" : "Submissions"} />
@@ -315,6 +350,9 @@ export default function Admin() {
                                 onImageUpload={handleImageUpload}
                                 saving={saving}
                                 isMobile={isMobile}
+                                passwordData={passwordData}
+                                setPasswordData={setPasswordData}
+                                onUpdatePassword={handleUpdatePassword}
                             />
                         ) : (
                             <ContentView 
@@ -342,7 +380,7 @@ function NavButton({ active, onClick, icon, label }: any) {
     );
 }
 
-function SettingsView({ siteContent, onContentChange, onSave, onImageUpload, saving, isMobile }: any) {
+function SettingsView({ siteContent, onContentChange, onSave, onImageUpload, saving, isMobile, passwordData, setPasswordData, onUpdatePassword }: any) {
     const renderSettingField = (label: string, key: string, type: 'text' | 'textarea' | 'image' | 'toggle' = 'text') => {
         const id = `settings:${key}`;
         const item = siteContent[id] || { content: '', image_url: '' };
@@ -453,6 +491,62 @@ function SettingsView({ siteContent, onContentChange, onSave, onImageUpload, sav
                             {renderSettingField("Contact Email", "contact_email")}
                         </div>
                     </div>
+                </section>
+
+                <hr style={{ border: "none", borderTop: "1px solid rgba(255,255,255,0.05)" }} />
+
+                {/* Analytics Section */}
+                <section>
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px", color: "#C9A96E" }}>
+                        <LayoutDashboard size={18} />
+                        <h3 style={{ textTransform: "uppercase", fontSize: "12px", letterSpacing: "0.2em", fontWeight: 700 }}>Analytics Tracking</h3>
+                    </div>
+                    <div style={{ display: "grid", gap: "20px" }}>
+                        <p style={{ fontSize: "12px", opacity: 0.5, marginBottom: "8px" }}>Paste your Google Analytics or tracking scripts here. They will be injected into the site's head tag.</p>
+                        {renderSettingField("Tracking Script", "analytics_script", "textarea")}
+                    </div>
+                </section>
+
+                <hr style={{ border: "none", borderTop: "1px solid rgba(255,255,255,0.05)" }} />
+
+                {/* Security Section */}
+                <section>
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px", color: "#E84040" }}>
+                        <X size={18} />
+                        <h3 style={{ textTransform: "uppercase", fontSize: "12px", letterSpacing: "0.2em", fontWeight: 700 }}>Security & Account</h3>
+                    </div>
+                    <form onSubmit={onUpdatePassword} style={{ background: "rgba(232,64,64,0.02)", border: "1px solid rgba(232,64,64,0.1)", borderRadius: "8px", padding: "24px", display: "grid", gap: "20px" }}>
+                        <p style={{ fontSize: "13px", fontWeight: 500, color: "#F2EEE8" }}>Change Admin Password</p>
+                        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "20px" }}>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                                <label style={{ fontSize: "11px", textTransform: "uppercase", opacity: 0.4 }}>New Password</label>
+                                <input 
+                                    type="password" 
+                                    value={passwordData.newPassword}
+                                    onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                                    style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "4px", padding: "10px", color: "#F2EEE8" }}
+                                    required
+                                />
+                            </div>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                                <label style={{ fontSize: "11px", textTransform: "uppercase", opacity: 0.4 }}>Confirm Password</label>
+                                <input 
+                                    type="password" 
+                                    value={passwordData.confirmPassword}
+                                    onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                                    style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "4px", padding: "10px", color: "#F2EEE8" }}
+                                    required
+                                />
+                            </div>
+                        </div>
+                        <button 
+                            type="submit" 
+                            disabled={saving}
+                            style={{ background: "#E84040", color: "#F2EEE8", border: "none", padding: "12px 24px", borderRadius: "4px", cursor: "pointer", fontWeight: 600, fontSize: "13px", transition: "opacity 0.2s" }}
+                        >
+                            {saving ? "Updating..." : "Update Password"}
+                        </button>
+                    </form>
                 </section>
             </div>
         </div>

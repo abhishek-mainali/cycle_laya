@@ -41,6 +41,29 @@ export default function Landing() {
             updateMeta("og:image", settings["social_image"].image_url);
         }
 
+        // Analytics Script Injection
+        const analyticsScript = settings["analytics_script"]?.content;
+        if (analyticsScript) {
+            // Remove existing injected script if any
+            const existingScript = document.getElementById('injected-analytics');
+            if (existingScript) existingScript.remove();
+
+            const scriptContainer = document.createElement('div');
+            scriptContainer.id = 'injected-analytics';
+            scriptContainer.innerHTML = analyticsScript;
+            
+            // Execute scripts inside the container
+            const scripts = scriptContainer.querySelectorAll('script');
+            scripts.forEach(oldScript => {
+                const newScript = document.createElement('script');
+                Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                oldScript.parentNode?.replaceChild(newScript, oldScript);
+            });
+
+            document.head.appendChild(scriptContainer);
+        }
+
         // Smooth scroll behavior
         document.documentElement.style.scrollBehavior = "smooth";
         document.documentElement.style.background = "#0A0906";
